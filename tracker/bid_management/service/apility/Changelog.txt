@@ -1,0 +1,956 @@
+1.13.1  - Minor bug fixes (->toXml tags now correct in LocalBusinessAd objects, one (int) cast corrected
+          to (double), reports did not return the download URL when a TSV report was requested)
+
+1.13.0  Be sure to read http://code.google.com/apis/adwords/docs/developer/releasenotes.html before this
+        Changelog in order to make sense of the shortened list of changes below.
+        
+        - AdGroup status field values renamed to original set ["Enabled", "Paused", "Deleted"], as documented
+          in http://code.google.com/apis/adwords/docs/developer/AdGroup.html#status. Previous APIlity versions
+          had "Enabled" renamed to "Active" in accordance with the "Active" state of Campaigns. The current
+          change is to prevent confusions and discrepancies between the API itself and the APIlity library.
+        - New geo targeting options excluded{Countries|Cities|Regions|Metros}. See
+          http://code.google.com/apis/adwords/docs/developer/GeoTarget.html for details.
+              * (modified) CampaignObject->setGeoTargets(...)
+        - New function getActiveCampaigns in order to obtain only active Campaigns. This allows for fast
+          retrieval of your Campaigns without having to wait for deleted, paused etc. Campaigns (i.e. returns
+          _only_ Active Campaigns). With the standard getAllCampaigns() function and APIlity's setting
+          Return_Deleted_Objects you can also filter the deleted Campaigns (i.e. returns all _but_ Deleted
+          Campaigns).
+              * (new) getActiveCampaigns()
+        - New function getActiveAdGroups in order to obtain only active AdGroups. This allows for fast
+          retrieval of your AdGroups without having to wait for deleted, paused etc. AdGroups (i.e. returns
+          _only_ Enabled AdGroups). With the standard getAllAdGroups() function and APIlity's setting
+          Return_Deleted_Objects you can also filter the deleted AdGroups (i.e. returns all _but_ Deleted
+          AdGroups).      
+              * (new) getActiveAdGroups()
+        - New function getRecommendedBudget(). Returns the recommended budget for a Campaign, if a suggestion
+          is available.
+              * (new) CampaignObject->getRecommendedBudget()
+        - New fields in KeywordCriterion objects: firstPageCpc, qualityScore.              
+              * (new) KeywordCriterionObject->get{FirstPageCpc|QualityScore}
+        - Removed field in KeywordCriterion objects: minCpc.
+              * (removed) KeywordCriterionObject->getMinCpc
+        - As minCpc is no longer supported, removed matchMaxCpcsToMinCpcs and matchMaxCpcToMinCpc.
+              * (removed) KeywordCriterionObject->matchMaxCpcToMinCpc()        
+              * (removed) AdGroupObject->matchMaxCpcsToMinCpcs()
+        - Removed field isEnabledSeparateContentBids from Campaign objects. This changes the function parameters in
+          all Campaign-creating functions:              
+              * (modified) addCampaign()
+              * (modified) addCampaignsOneByOne()
+              * (modified) addCampaignList()                     
+              * (removed) CampaignObject->getIsEnabledSeparateContentBids
+        - New ad type MobileImageAd. 
+              * (new) addMobileImageAd(...)                      
+              * (new) addMobileImageAdList(...)                      
+              * (new) addMobileImageAdsOneByOne(...)                                    
+        - New function getClientsClientAccountInfos and getManagersClientAccountInfos. The first function gets
+          the account information of the "clientEmail" field, the latter of the "email" field in the
+          authentication context (as in getClientsClientAccounts and getManagersClientAccounts).
+              * (new)  getClientsClientAccountInfos()
+              * (new)  getManagersClientAccountInfos()                     
+        - New function getMccAlerts. Gets the alerts of any account in your My Client Center.
+              * (new)  getMccAlerts()
+        - Keyword Tool now returns average search volume and last month search volume data. See 
+          http://code.google.com/apis/adwords/docs/developer/KeywordVariation.html and
+          http://code.google.com/apis/adwords/docs/developer/SiteKeyword.html for details. Therefore the
+          information on searchVolumeScale has been removed. 
+        - New report types search query performance and geographic performance report.
+              * (new)  getSearchQueryXmlReport(...)                             
+              * (new)  getSearchQueryTsvReport(...)                             
+              * (new)  getGeographicXmlReport(...)                             
+              * (new)  getGeographicTsvReport(...)  
+        - Option to set an HTTP proxy via settings.ini.
+        - Option to use a separate settings.ini file for each APIlity instance. You provide the location of your
+          settings.ini file via the APIlityUser constructor:
+          $apilityUser = new APIlityUser(
+              'email',
+              'password',
+              'clientEmail',
+              'developerToken',
+              'applicationToken',
+              'path/to/settings.ini')
+          (Thanks to Sander Marechal for the idea)
+        - Option to use a separate authentication.ini file for each APIlity instance. You provide the location
+          of your authentication.ini file via the APIlityUser constructor:
+          $apilityUser = new APIlityUser(
+              'email',
+              'password',
+              'clientEmail',
+              'developerToken',
+              'applicationToken',
+              'path/to/settings.ini',
+              'path/to/authentication.ini')
+        - Campaigns by default no longer obtain all the Campaign Negative Keywords in order to save API units.
+          (Thanks to Andrew for the remark)
+        - New function getCriterionListStats. This function obtains statistics for a list of Criteria.
+          (Thanks to Mick for the implementation of the function)
+        - Option to retrieve only the download URL in reports rather than the report data. Therefore pass
+          true in the last argument of the report retrieval function, e.g.
+          getKeywordXmlReport(
+              $name, 
+              $startDay,
+              $endDay,
+              $selectedColumns,
+              $aggregationTypes,
+              $campaigns,
+              $campaignStatuses,
+              $adGroups,
+              $adGroupStatuses,
+              $keywords,
+              $keywordStatuses,
+              $adWordsType,
+              $keywordType,
+              $isCrossClient,
+              $clientEmails,
+              $includeZeroImpression,
+              $sleepTime,
+              $validateFirst,
+              $onlyReturnDownloadUrl)          
+        - Removed all (int) casts in order to prevent integer overflows and replaced them by (float) casts.
+          (Thanks to Jan and Sander for the bug reports and investigations)
+        - Report retrieval no longer uses the buffer in order to facilitate command line usage of APIlity.
+          (Thanks to Mark W. for the implementation)
+        - The test suite has been updated in order to work in the object-oriented mode.
+        - Included PHP files have been renamed from .inc to .inc.php.
+          (Thanks to Bert for the remark)
+        - If APIlity runs with PHP4 and if object-oriented mode is activated, an incompatibility warning gets
+          displayed. 
+        - All APIlity warnings now use the proper trigger_error function with E_USER_WARNING error type.      
+        - Simplified APIlityUser instantiation internally. Removed Authentication.php. All valid context-
+          switching options are listed here:
+          http://google-apility.sourceforge.net/index.html#Authentication_and_Context_Switching
+          If you have object-oriented mode disabled, you now need to instantiate the APIlityUser object. See
+          project.php for an example:
+          $apilityUser = new APIlityUser
+          
+1.12.2  - Bug fix in AdGroup.inc and Campaign.inc where deleted objects where not returned, even if the flag in
+          settings.ini was set.
+          (Thanks to Thomas Grübel for the bug report and bug fix)
+        - Bug fix where a typo in Report.php caused reports not to succeed in case of where PHP4 was used.
+          (Thanks to Gordon Brown and Tony Wade for the bug reports and fixes)
+        - Bug fix in Ad.inc where checkAdList failed because there was no Ad Group ID specified (0 now)
+          (Thanks to Stefania Calamai for the bug report and fix)
+        - Bug fix in Ad.inc where unset values caused PHP warnings.
+          (Thanks to Andrew Komasinski for the bug report and fix)
+        - Bug fix in Campaign.inc where unset geo target settings caused PHP warnings
+          (Thanks to Mikey Tag for the bug report and fix) 
+
+1.12.1  - Bug fixes in Ad.inc where some XML tags were missing the closing tag and a return statement was incorrect.
+          (Thanks to Gordon Brown and Tony Wade for the bug reports and fixes)
+          
+1.12.0  Attention: this release MODIFIES the interface of various elementary functions. Please read the Changelog carefully.
+        - Added conversion optimizer support for Campaigns. Please see
+          http://google-apility.sourceforge.net/reference.html#campaign-setConversionOptimizerSettings%28%24conversionOptimizerSettings%29
+          for details. Eligibility to turn on this feature is tested automatically.
+              * (new) CampaignObject->setConversionOptimizerSettings()
+              * (new) AdGroupObject->{get|set}MaxCpa()          
+        - Added CPC bidding for placement-targeted Campaigns. This adds and/or changes the interface of the
+          following functions:
+              * (new) AdGroupObject->{get|set}SiteMaxCpc()
+              * (new) WebsiteCriterionObject->{get|set}MaxCpc()
+              * (modified) addAdGroup()
+              * (modified) addAdGroupList()
+              * (modified) addAdGroupsOneByOne()
+              * (modified) addWebsiteCriterion()
+        - New budget fields in Campaign. Two new fields — budgetAmount and budgetPeriod — replace dailyBudget.
+          To use an existing Campaign's budget with the new structure, set budgetPeriod to Daily and budgetAmount
+          to the existing campaign's budget.      
+              * (new) CampaignObject->{get|set}BudgetAmount()
+              * (new) CampaignObject->{get|set}BudgetPeriod()                        
+              * (removed) CampaignObject->getDailyBudget()
+              * (modified) addCampaign()
+              * (modified) addCampaignList()
+              * (modified) addAdCampaignsOneByOne()              
+        - New function removeCriterionList to remove several Criteria at a time
+              * (new) removeCriterionList()
+        - New function getCustomizedKeywordListEstimate that allows you to receive the same results as with the tool at
+          https://adwords.google.com/select/TrafficEstimatorSandbox.
+              * (new) getCustomizedKeywordListEstimate()
+        - New setting to configure whether to return deleted objects like Campaigns, AdGroups, etc., or to rather hide them.
+          See http://google-apility.sourceforge.net/index.html#Deleted_Objects for details.
+        - Read-only fields added to LocalBusinessAd. Three new read-only fields (fullBusinessName, latitude, and longitude)
+          are now available.
+              * (new) LocalBusinessAdObject->get{FullBusinessName|Latitude|Longitude}          
+        - Changed timeout settings in NuSOAP.
+          (Thanks to Vladimir Kornea)                          
+        - Added XML special characters escaping for ->toXml() functions.
+        - Fixed a bug in Account.php with getManagersClientAccounts.          
+        - Fixed a bug with proximity targets settings where longitude/latitude values were not set correctly.
+        - Added support for the ContentPlacement report type.
+          See http://google-apility.sourceforge.net/reference.html#report for details.        
+        - Added unit conversion for all eligible fields in reports (micros to actual currency).          
+        - Fixed many documentation bugs (please keep posting any documentation bug that you come across).
+
+1.11.3  - Added support for the new Account Structure report type.
+          See http://google-apility.sourceforge.net/reference.html#report for details.
+
+1.11.2  - Bug fix for TrafficEstimate.php where getMaxCpc() was not correctly renamed to
+          getKeywordMaxCpc().
+          (Thanks to Spacy for the bug report)
+        - Bug fix for Report.php where custom values got overridden by default values.
+          (Thanks to Denis [one 'n'] Vaillant for the bug report and the bug fix)  
+        - Fixed a bug in validateReportJob where the missing XML namespace caused the function to fail.
+          (Thanks to Denis Vaillant for the bug report)
+        - Added Campaign end date handling. Now you can set endDate to empty string in order to create
+          never-ending Campaigns in addCampaign(...), addCampaignList(...), and addCampaignsOneByOne(...).
+        - Modified behavior for set{Headline|Description1|Description2|DestinationUrl|DisplayUrl}(...) where
+          the status of updated Ads was always set to Enabled instead of copying the original status.
+          (Thanks to Jürgen Kaatz, Mikev, Vladimir Kornea, and Jan Piotrowski for the lively discussion)
+        - Added a new mode for object-oriented programming. This allows you to program acting as an 
+          APIlityUser or APIlityManager with easier access to quota and debugging information.
+          See http://google-apility.sourceforge.net/index.html#Object_Orientation for details. This, as mentioned, simplifies
+          the way you can access authentication, quota, fault, and debugging information. See the following
+          links for details:
+          http://google-apility.sourceforge.net/index.html#Authentication_and_Context_Switching
+          http://google-apility.sourceforge.net/index.html#Fault_Stack
+          http://google-apility.sourceforge.net/index.html#Quota_Usage_in_APIlity
+          http://google-apility.sourceforge.net/index.html#Debugging             
+          You can also check the new project_oo.php sample project.
+
+1.11.1  - Bug fix for	addMobileAd which did not return the new ad
+          (Thanks to Wes Winham for the bug report and the bug fix)        
+        - Bug fix for an issue with customIcon not being set in LocalBusinessAd constructor
+          (Thanks to Wes Winham for the bug report and the bug fix)                
+        - Bug fix for $someSoapClient not being instantiated in campaign.php
+          (Thanks to Wes Winham for the bug report and the bug fix)        
+        - This for some reason did not make it in the 1.11.0 Changelog... New field belongsToClientEmail
+          for campaigns.
+          See http://google-apility.sourceforge.net/reference.html#campaign-getBelongsToClientEmail%28%29.
+              * (new) ->getBelongsToClientEmail()        
+          (Thanks to Vladimir Kornea for the feature suggestion)        
+
+1.11.0  - New flexible report interface. The report interface has changed in v11 to expand the range
+          of reports you can schedule. This comes along with a new way to schedule reports.
+              * (new) getAccountTsvReport
+              * (new) getAccountXmlReport
+              * (new) getAdGroupTsvReport
+              * (new) getAdGroupXmlReport
+              * (new) getCampaignTsvReport
+              * (new) getCampaignXmlReport
+              * (new) getCreativeTsvReport
+              * (new) getCreativeXmlReport
+              * (new) getKeywordTsvReport
+              * (new) getKeywordXmlReport
+              * (new) getReachAndFrequqencyTsvReport
+              * (new) getReachAndFrequqencyXmlReport
+              * (new) getUrlTsvReport
+              * (new) getUrlXmlReport
+          Please see the particular function's section in the docs and please have a look at the provided
+          samples: http://google-apility.sourceforge.net/reference.html#report. Be sure to read
+          http://www.google.com/apis/adwords/developer/adwords_api_reports.html in order to get the
+          column selection right.
+        - Renamed AdGroup CPC and CPM fields - To avoid ambiguity, some AdGroup CPC and CPM fields have
+          been renamed by adding "keyword" or "site", to distinguish whether they apply to a keyword or
+          website. This influences the following functions:
+              * (old) ->{get|set}MaxContentCpc
+              * (new) ->{get|set}KeywordContentMaxCpc
+              * (old) ->{get|set}MaxCpc
+              * (new) ->{get|set}KeywordMaxCpc
+              * (old) ->getProxyMaxCpc
+              * (new) ->getProxyKeywordMaxCpc
+              * (old) ->{get|set}MaxCpm
+              * (new) ->{get|set}SiteMaxCpm
+              * (modified) ->getAdGroupData
+              * (modified) addAdGroupList()
+              * (modified) addAdGroupsOneByOne()
+        - Images (image ads) now return a shrunkenUrl field.
+        - Removed the ability to set the login email address or password
+              * (removed) setLoginInfo()
+        - If you set Campaign end day to a date both after 2006/12/31 and not 2007/12/30, the
+          service will throw an exception. In previous versions, CampaignService silently rounded
+          such out-of-range dates. 2007/12/30 is a special constant that causes the Campaign to never end.
+
+1.10.4  - Replaced global variables $authenticationContext, $faultStack, and $soapClients by
+          static variables. In order to use these variables now, you need to get the reference
+          to the particular variable. See http://google-apility.sourceforge.net/#Fault_Stack and
+          http://google-apility.sourceforge.net/#Authentication_and_Context_Switching for updated
+          examples.
+          (Thanks to Yury Ksenevich for the patch)          
+        - Fixed the invisible characters bug in NuSOAP that caused sessions to fail on initialization.
+          (Thanks to Imran for the bug report and fix)        
+        - Fixed a typo in Criterion.php where the maxCpc field was macCpc.
+          (Thanks to Phil for the bug report and fix)        
+        - Fixed a bug in checkCriterionList() where the optional destinationUrl and isNegative fields
+          were strictly assumed.
+          (Thanks to Phil for the bug report and fix)        
+        - Fixed a bug in Ad.php for ImageAds, where the exemption request was missing. 
+          (Thanks to Denis Vaillant for the bug report and fix)
+        - downloadCsvReport() has been renamed to downloadTsvReport, as the function indeed returns tab-
+          separated data, and not comma-separated data. The original function links back to the new function
+          for compatibility reasons for some time. However, please update your code.
+              * (old) ->downloadCsvReport()            
+              * (new) ->downloadTsvReport()            
+          (Thanks to Vladimir Kornea for the bug report and fix)       
+
+1.10.3  - Bug fix in Criterion.php where in case of activated budget optimizer the MaxCPC field could
+          not be muted (no it can be null).
+          (Thanks to Wei for the bug report and the bug fix.)
+        - Bug fix in nusoap.php where the EUR sign got munged when the file was saved UTF8-encoded
+          (Thanks to Tom Churm for the bug report and the bug fix.)
+        - Changed the NuSOAP debugging level which should solve memory leaks
+          (Thanks to Phil and Chronofish for the bug report and fix)
+        - Fixed the docs (removed old creative service stuff)
+          (Thanks to Mark for the remark)
+
+1.10.2  - Bug fix in Campaign.php where "Pending" Campaigns were not returned.
+          (Thanks to Harsh for the bug report and the bug fix.)
+1.10.1  - Bug fix for an error in Report.php which caused reports to fail in the sandbox.
+          (Thanks to Aaron Karp and sempsteen for tracking this issue down to the solution)
+
+1.10.0  - APIlity now supports the SiteSuggestion service. Please see 
+          http://google-apility.sourceforge.net/reference.html#sitesuggestion for details.
+              * (new) getSitesByCategoryName(...)
+              * (new) getSitesByDemographics(...)
+              * (new) getSitesByTopics(...)
+              * (new) getSitesByUrls(...)
+        - New function checkKeywordTraffic. Please see
+          http://google-apility.sourceforge.net/reference.html#trafficestimate-checkKeywordListTraffic%28%24keywords%29
+          for details.
+              * (new) checkKeywordTraffic(...)
+        - GeoTargeting modifications. Please see http://www.google.com/apis/adwords/developer/GeoTarget.html
+          and the samples in the reference for details.
+              * (modified) ->getGeoTargets()
+              * (modified) ->setGeoTargets
+              * (modified) addCampaign(...)
+              * (modified) addCampaignsOneByOne()
+              * (modified) addCampaignList()
+              * (modified) addCampaignList()
+              * (modified) checkCriterionList(...)
+              * (modified) checkAdList(...)
+
+        - Added support for currencies Ukrainian Hryvnia (UAH), Vietnamese Dong (VND) and Serbian
+          Dinar (RSD).
+        - Modification with the createXxxObject functions: in case of an invalid ID, the functions
+          now return null instead of false. This allows for more precise error handling.
+          (Thanks to Jürgen for the suggestion.)
+        - Bug fix of the method receiveCriterion() where the unit conversion happened two times.
+          (Thanks to Jürgen for the bug report and the bug fix.)
+        - Bug fix in Campaign.php where "Ended" Campaigns were not returned.
+          (Thanks to Laurent for the bug report and the bug fix.)
+        - Bug fix in Criterion.php where invalid indention caused an API exception.
+          (Thanks to msrapi for the bug report and the bug fix.)
+        - All files are saved in UTF-8 format now. This should solve any encoding issues. If you have
+          to handle non-ASCII encoded data, please make sure to save your files in UTF-8 format.
+          (Thanks to Thomas Grübel and Marco T. for input and bug reports.)
+
+1.9.0   - APIlity now supports Video Ads. This comes along with some new functions:
+              * (new) addVideoAd(...)
+              * (new) getMyVideos(...)
+              * (new) ->getName()
+              * (new) ->getVideo()
+              * (new) ->getImage()
+        - Added the request checkAdList to check a batch of ads for policy errors:
+              * (new) checkAdList
+        - Now all calls return statistics in the account's local timezone, no matter what. As such,
+          removed the inPST parameter from the statistics requests.
+        - Added an ability to get periodic emails on your account's performance and disapproved ads.
+              * (modified) createEmailPreferencesXml(...)
+              * (modified) updateAccountInfo(...)
+        - In account infos replaced the field defaultAdsTargeting with defaultNetworkTargeting.
+          Removed the field termsAndConditions (no replacement).
+              * (modified) updateAccountInfo(...)
+        - New Active/InActive status for keyword and criterion - Active status replaces Normal and
+          Inactive replaces OnHold in KeywordStatus and CriterionStatus.
+        - Removed Creative Service. Use AdService instead, which has improved functionality.
+        - Bugfix in Ad.php concerning Ad removal.
+          (Thanks to Denis Vaillant for the bug report and fix)
+        - Bugfix in AdGroup.php concerning AdGroup parsing.
+          (Thanks to Jürgen Kaatz for the bug report and fix)
+        - Bugfix concerning encoding issues with special characters on Ad/Creative updates
+          (Thanks to Thomas GrÃ¼bel ;-) for the bug report)
+        - Bugfix concerning the keyword tools in case where only one element was returned
+        - Bugfix concerning createXxxObject functions in case of invalid IDs
+          (Thanks to Phil Fernandez for the bug report and fix)
+        - Bugfix with addVideoAd where a parameter was missing
+          (Thanks to Denis Vaillant for the bug report and fix)
+        - Bugfix concerning report scheduling where the XML namespace was missing
+          (Thanks to Denis Vaillant for the bug report and fix)
+
+1.8.1   - Code refactoring and minor bugfixes concerning nillable values.
+          All classes now have a receive{Campaign|...|Criterion} function that does the mapping
+          between API-returned values and APIlity objects in order to simplify debugging and code
+          maintenance.
+
+1.8.0   - Enables all features of the previous sandbox-only release
+        - New sandbox feature:
+              * CommerceAd
+          Please see http://google-apility.sourceforge.net/reference.html#ad for details.
+
+1.8.0_sandbox
+        - A new field budgetOptimizerSettings in Campaign allows you use a budget optimizer. You can
+          enable or disable the optimizer and set a ceiling on bids placed by the optimizer (proxy bids).
+          While turning off the budget optimizer, you can also specify whether or not the optimized proxy
+          bids replace the original user bids.
+          When the budget optimizer is enabled, proxy bids will be placed by the budget optimizer and used
+          in place of your manual bids.
+        - You can view the status of these bids in the field proxyMaxCpc on AdGroup and Keyword. Initially,
+          before the budget optimizer has a chance to calculate bids, the adgroups will take on a default
+          proxyMaxCpc that is the minimum currency value, and the keywords will have no proxy bids. Shortly
+          thereafter, these bids will be adjusted, and you will see individual proxy keyword bids show up.
+          You will still be able to read your manual bids (maxCpc) while the budget optimizer is on.
+
+        - New service AdService provides improved functionality over CreativeService and will eventually replace it.
+          See http://google-apility.sourceforge.net/reference.html#ad for details.
+          Ads have different visual representations for different targets:
+              * Local Business Ads - Data associated with ads on Google Maps
+              * Mobile Ads - Data associated with ads on a mobile phone
+              * Image Ads - Data associated with image ads
+              * Text Ads - Data associated with text-only ads
+        - Check creatives and criteria - Two methods have been added to check creatives and criteria:
+              * (new) checkCriteria
+              * (new) checkCreativeList
+        - Several minor bug fixes
+          (Thanks to David Morandi for the bugfix)
+
+1.7.0   - Campaigns now support ad scheduling. This comes along with two new functions and
+          modified parameters for the add functions
+              * (modified) addCampaign(...)
+              * (modified) addCampaignList(...)
+              * (modified) addCampaignsOneByOne(...)
+              * (new) ->getAdScheduling()
+              * (new) ->setAdScheduling(...)
+          In consequence the Campaign object structure has changed and has now an additional
+          attribute "adScheduling". Please check the Campaign section of the reference and the
+          following page for details about ad scheduling:
+          https://adwords.google.com/support/bin/answer.py?answer=33227&query=ad+scheduling&topic=&type=f
+        - Now you can use updateCriteria to do updates across different AdGroups. For example, you can
+          set the Keyword maxCpc or language in various AdGroups with a single call (no
+          change to API, just to the semantics).
+        - Removed method to set local timezone
+               * (removed) setLocalTimezone(...)
+        - Removed method to create an AdWords account and the related XML helper functions
+               * (removed) createAdWordsAccount(...)
+        - Removed deprecated setters and getters from AccountService. All account functions are
+          now exclusively accessible using updateAccountInfo().
+        - New function getCreditCard for accessing credit card information
+               * (new) getCreditCard()
+        - Creatives and Criteria can now be paused (currently a sandbox-only feature). This feature
+          comes along with modifications in the Creative and Criterion object structure.
+          Creatives now have a new attribute "status" which replaces the old "isDeleted" attribute.
+               * (removed) ->getIsDeleted()
+               * (new) ->getStatus()
+               * (new) ->setStatus(...) // "Paused" or "Enabled"
+          For Criteria there has been simply introduced a new attribute "isPaused"
+               * (new) ->getIsPaused()
+               * (new) ->setIsPaused(...)
+
+1.6.3   - Bugfix for the typo bug in Report_v6.php which caused invalid XML to be generated.
+          (Thanks to Joost de Mes who posted this bugfix)
+        - Bugfix for the geo target features of Campaigns which did not work correctly in case
+          where just one geo target of a specific type was selected.
+          (Thanks to Phil Fernandez who posted this bugfix)
+        - New function for retrieving a list of Criteria
+              * (new) getCriterionList(...) 
+          (Thanks to Jürgen Kaatz who contributed this function)
+        - New function for retrieving a list of AdGroups
+              * (new) getAdGroupList(...) 
+          (Thanks to Jürgen Kaatz who contributed this function)
+
+1.6.2_fixed
+        - Depending on the account's time zone, today's date may be interpreted to be in the past,
+          and thus Campaigns cannot be added due to an error message. To prevent this, simply leave
+          the startDate parameter of addCampaign, addCampaignList, and addCampaignsOneByOne empty,
+          if you want to start the Campaign(s) directly after their creation.
+
+1.6.2   - Added support for the new function getCreativeStats
+              * (new) getCreativeStats(...)
+
+1.6.1   - Added support for multiple geo target types. This allows you to target Campaigns
+          in several regions, cities, and metros; or countries, and territories at the same time.
+          Please note that there are several restrictions. Legal options are:
+          * a list of countries, and territories
+          XOR
+          * a combination of one or more regions, metropolitan areas, and cities within a single
+            country or territory, where one item may not be contained in a more general item.
+          In consequence, the geoTargetType attribute of Campaigns has been removed. See
+          http://google-apility.sourceforge.net/resources/apility_hierarchy.png for an updated
+          object hierarchy. This also has an impact on the following function parameters or
+          return types:
+              * (modified) addCampaign(...)
+              * (modified) addCampaignList(...)
+              * (modified) addCampaignsOneByOne(...)
+              * (modified) getGeoTargets()
+              * (modified) setGeoTargets(...)
+              * (modified) $campaignObject->toXml()
+          The following function has been removed:
+              * (old) getGeoTargetType()
+          See http://google-apility.sourceforge.net/reference.html#campaign for details.
+        - Minor bugfix: the introduction of settable start dates can result in the Campaign status
+          "Pending". Such Campaigns were not listed via getAllCampaigns.
+          (Thanks to Sserv for posting a patch to the forum)
+
+1.6.0   !! Major Update !!
+        - With the introduction of version 6 of the API, all applications must identify
+          themselves with a unique application token. This application token needs to
+          be set in authentication.ini, or via
+          $authenticationContext = new APIlityAuthentication(
+            $email,
+            $password,
+            $developerToken,
+            $clientEmail,
+            $applicationToken);
+          All details are listed here:
+          http://google-apility.sourceforge.net/#Authentication_and_Context_Switching
+        - The error format has been changed, and in case of failing list function the 
+          error message now gives a much better insight in what actually went wrong by reporting
+          all errors at once, instead of just the first error.
+          All details are listed here:
+          http://google-apility.sourceforge.net/#Error_Message_Styles
+        - The depreciated Keyword service has been finally removed. This means that all functions 
+          that used to be offered by the Keyword class are gone. Also on AdGroup objects you
+          can no longer call $adGroupObject->getAllKeywords() and
+          $adGroupObject->getAllActiveKeywords(). Use $adGroupObject->getAllCriteria() instead.
+        - In order to simplify Report generation, the class Report has been completely re-designed.
+          The old functions
+              * (old) getCsvReport(...)
+              * (old) getXmlReport(...)
+          have been completely replaced by eight new functions:
+              * (new) getAccountReportJob(...)
+              * (new) getAdTextReportJob(...)
+              * (new) getAdGroupReportJob(...)
+              * (new) getAdImageReportJob(...)
+              * (new) getCampaignReportJob(...)
+              * (new) getCustomReportJob(...)
+              * (new) getKeywordReportJob(...)
+              * (new) getUrlReportJob(...)
+          This hopefully demystifies Report generation a lot. Please see the docs for the
+          different functions here: http://google-apility.sourceforge.net/reference.html#report
+          Please note that the last few parameters are always optional, so the basic Reports
+          should be really a lot easier to create. The first parameter always determines
+          the Report type (XML or CSV).
+          In addition to that, all Report types now support the new aggregation type 'weekly',
+          while the types 'HourlyRegardlessDate' and 'HourlyByDate' are only supported by Campaign
+          Reports and Account Reports.
+        - With the new function
+              * (new) getAccountInfo()
+          you can now easily retrieve all the account's data at once, while the new function
+              * (new) updateAccountInfo(...)
+          allows you to set certain parameters at once.
+        - Campaigns now support setting a start date instead of simply hard-wiring the start date
+          to the creation date. This changes the parameters of the following functions:
+              * (modified) addCampaign(...)
+              * (modified) addCampaignList(...)
+              * (modified) addCampaignsOneByOne(...)
+          Now you need to pass a start date as well as an end date.
+        - The new function
+              * (new) getUnitCountsForClients(...)
+          allows you to exactly determine quota consumption per client.
+        - The function
+              * (modified) createAdwordsAccount()
+          now allows an additional field 'emailAddress' in the 'contactInfoXml' field, and
+          a 'timeZoneId' field.
+        - The debug mode can now be easily activated in the settings.ini file. See the docs here 
+          http://google-apility.sourceforge.net/#Debugging for details.
+        - A bug in getManagersClientAccounts() and in getClientsClientAccounts() has been fixed.
+          (Thanks to Jürgen for the bug fix)
+
+1.4.6   - Added sandbox support. This very useful feature is documented here:
+          http://google-apility.sourceforge.net/#Sandbox
+        - New function that allows you to receive a list of campaigns.
+              * (new) getCampaignList()
+        - Changed all class names so that now each class name has the prefix APIlity.
+          This was done to prevent overlapping with existing class names in your code.
+          The change does not affect you, unless you are using the $authenticationContext 
+          variable. In either case you need to use:
+              * (new) $authenticationContext = new APIlityAuthentication(...);
+          instead of: 
+              * (old) $authenticationContext = new Authentication(...);
+          The change is documented here:
+          http://google-apility.sourceforge.net/#Authentication_and_Context_Switching
+        - The debug mode (http://google-apility.sourceforge.net/#Debugging) now comes with
+          basic syntax highlighting when the error message style is set to HTML.
+          (Thanks to Daniel O'Brien who implemented this feature.)
+        - Re-fixed the getCsvReport() function which was broken again in the last release.
+        - Fixed a bug in the traffic estimates of Campaigns and AdGroups
+        - Fixed a bug in the getAllKeywords() and getAllActiveKeywords() function.
+          (Thanks to Phil Fernandez who pointed to this bug.)
+
+1.4.5   - Fixed the getCsvReport() function which was broken in the last release.
+          (Thanks to Bernd (gogy) for pointing to this bug.)
+        - Fixed a small bug in ->getAdGroupData() where an attribute was wrong.
+          (Thanks to Paul Maunders for pointing to this bug.)
+        - Fixed a small bug in ->getCriterionData() where an attribute was missing.
+          (Thanks to Paul Maunders for pointing to this bug.)
+        - Added the possibility to select different match types for Campaign Negative Criteria.
+          This changes the parameters and return values of the following functions:
+              $campaignObject->setCampaignNegativeKeywordCriteria()
+              $campaignObject->setCampaignNegativeWebsiteCriteria()
+              $campaignObject->getCampaignNegativeKeywordCriteria()
+              $campaignObject->getCampaignNegativeWebsiteCriteria()
+              $campaignObject->toXml()
+          (Thanks to Norman Winzer who brought this topic up and contributed a slightly
+          different solution to the problem.)
+
+1.4.4a  - The ->toXml() method of Campaigns returned <endDay> and <startDay> tags instead
+          of <endDate> and <startDate>. APIlity simply keeps the old names, unless in the
+          native API the names have been changed. See the following links for details:
+          v4: http://www.google.com/apis/adwords/developer/Campaign.html#endDay
+          v3: http://www.google.com/apis/adwords/developer3/Campaign.html#endDate
+
+        - Small correction in the logic: if there are no objects to return (e.g. when you
+          call getAllCriteria() on an empty AdGroup), APIlity 1.4.4 returned false. APIlity
+          1.4.4a just returns an empty array in either case.
+
+        - The ->matchMaxCpcToMinCpc() method of AdGroups refers to Keyword objects when you
+          use API v3 (according to your settings.ini file). When you use API v4, the same
+          method now refers to Criterion objects.
+
+        - The Traffic Estimations of AdGroups and Campaigns refer to Keyword objects when you
+          use API v3 (according to your settings.ini file). When you use API v4, the Traffic
+          Estimations now refer to Criterion objects.
+
+        - To prevent annoying warnings, "foreach" loops now check if the iteration object is
+          iterable.
+
+
+1.4.4   - This version introduces support for API v4
+
+        - There are three new functions concerning local timezone settings
+              * (new) setLocalTimezone() (not yet enabled)
+              * (new) getLocalTimezone()
+              * (new) getTimezoneEffectiveDate()
+
+        - API v4 has a new way of handling dates for
+              * Stats (getCriterionStats(), getCampaignStats(), getAdGroupStats())
+              * Reports (getXmlReport(), getCsvReport())
+              * Campaign start/end dates ($campaignObject->setEndDate(), addCampaign(),
+                addCampaignList(), addCampaignsOneByOne())
+          Now you have to specify an xsd:date (rather than an xsd:datetime). The day will
+          automatically be interpreted in the account's local time.
+          In short: for the above contexts, modify your dates as follows:
+              (old) 2011-12-17T12:00:00Z ->  (new) 2011-12-17
+
+        - For the getXxxStats methods (getCriterionStats(), getCampaignStats(), getAdGroupStats())
+          there is an optional new parameter which allows you to still retrieve stats in
+          America/Los_Angeles timezone. It defaults to false (i.e. your local timezone will be
+          used instead.
+              * (new) inPST function parameter in getXxxStats methods
+
+        - The parameters of getXmlReport() and getCsvReport() have been modified in order to support
+          reporting on a list of accounts and in order to include zero impression criteria in Reports.
+          Please check out the updated docs carefully:
+          http://google-apility.sourceforge.net/reference.html#report-getXmlReport%28%24reportName%2C
+          +%24reportType%2C+%24aggregationType%2C+%24startDate%2C+%24endDate%2C+%24sleepTime%29
+
+        - The Traffic Estimator now supports ranges which comes along with six new fields. These new
+          fields represent ranges instead of single values.
+              * (old) avgPosition  -> (new) lowerAvgPosition, upperAvgPosition
+              * (old) clicksPerDay -> (new) lowerClicksPerDay, upperClicksPerDay
+              * (old) cpc          -> (new) lowerCpc, upperCpc
+
+        - In order to simplify tracking of requests, a new unique request ID in the response header
+          has been introduced. It can be made visible using APIlity's debugging option
+          (http://google-apility.sourceforge.net/index.html#Debugging)
+
+        - A minor bugfix for the traffic estimator which caused one element not to be included in the
+          traffic estimate. In API v4 this bug never occurs. However, it might be important if you want
+          to use API v3 until it gets deactivated.
+          (Thanks to Adam Pountney for the bugfix)
+
+1.4.0   !! Major Update !!
+
+        - The error handling has been completely changed. A new error handling strategy
+          has been introduced in order to make APIlity functions more reliable. The convention
+          for the behavior of all functions is:
+             * if something went wrong
+                 => return false
+             * if everything went well
+                 => return the thing when there is something to return
+                 => return true when there is nothing to return
+          An exception of this are simple object get-functions as they require a successfully
+          created object anyway. Please view http://google-apility.sourceforge.net/#Error_Management
+          for details. In general, your old code should be fully compatible. The only exception is
+          when your code was based on what was called "Central Error Collecting Array". In either
+          case make sure to change your code to use the fault stack.
+
+        - New error message styles: http://google-apility.sourceforge.net/#Error_Message_Styles
+
+        - New Fault Stack: http://google-apility.sourceforge.net/#Fault_Stack
+
+        - There is a new Silence Stealth Mode: http://google-apility.sourceforge.net/#Silence_Stealth_Mode
+
+        - Campaign Negative Criteria have been handled as pseudo object attributes. Now they can be
+          added transparently to Campaign objects. Please view
+          http://google-apility.sourceforge.net/#Campaign_Negative_Criteria for details.
+          Please note: this is _enabled_ by default and consumes 1 quota unit per item.
+
+        - All objects (Campaign, AdGroup, WebsiteCriterion, KeywordCriterion, Keyword, Creative) now have
+          an additional toXml() function. An example is documented here:
+          http://google-apility.sourceforge.net/APIlity_Reference_Standalone.html#campaign-toXml%28%29
+
+        - There are three new functions for the info service
+              * (new) getUnitCountForMethod()
+              * (new) getMethodCost()
+              * (new) getUsageQuotaThisMonth()
+          These functions are documented here:
+          http://google-apility.sourceforge.net/APIlity_Reference_Standalone.html#info
+          (Thanks to AIMpromote for this contribution)
+
+        - The projet.php demo project has been updated and shows the toXml() feature and the defensive
+          programming model.
+
+        - The class structure has been cleaned up. The new class organigram is available here:
+          http://google-apility.sourceforge.net/resources/apility_organigram.png
+
+        - There is a new announcement-only group with very low traffic which is exclusively used
+          to announce new releases, bugs ans bugfixes. Feel free to subscribe:
+          URL: http://groups.google.com/group/APIlity-Announce
+          Atom 1.0 feed: http://groups.google.com/group/APIlity-Announce/feed/atom_v1_0_msgs.xml
+
+        - API v2 support has been disabled.
+
+1.3.0_fixed
+        - Definite bugfix for the "This account is empty" problem.
+          (Thanks to Demjan for the hint in the forum)
+        - Bugfix for addAdGroup() function for Campaigns with separate content bidding disabled
+        - Bugfix for setCampaignNegativeXxxCriteria() functions which used to eliminate each other
+
+1.3.0   !! Major update !!
+        Update _required_ until March 27, 2006
+
+        This version introduces the versioning feature and contains the step from API v2 to API v3
+        By default APIlity uses the latest API version (v3). This can be changed by setting the
+        Use_API_Version value from v3 to v2 in settings.ini
+        (API v3 is the reason for the version step skip from APIlity 1.1.0 to 1.3.0)
+
+        - AdGroups can now have separate content bids. Therefore the following functions have been
+          introduced respectively modified in AdGroup.php:
+              * (new) getMaxContentCpc()
+              * (new) setMaxContentCpc()
+              * (modified) addAdGroup (calling parameters changed)
+              * (modified) addAdGroupList (calling parameters changed)
+              * (modified) addAdGroupsOneByOne (calling parameters changed)
+          In addition to that the object structure of AdGroups has an additional attribute: maxContentCpc
+              * (new) maxContentCpc
+
+        - The object structure of Campaigns has a new attribute as well: isEnabledSeparateContentBids.
+          For consistency reasons the attribute isOptimizeAdServing has been renamed:
+              * (old) isOptimizeAdServing -> (new) isEnabledOptimizedAdServing
+              * (new) isEnabledSeparateContentBids
+          This introduces respectively modifies the following functions:
+              * (old) getIsOptimizeAdServing() -> (new) getIsEnabledOptimizedAdServing()
+              * (old) setIsOptimizeAdServing() -> (new) setIsEnabledOptimizedAdServing()
+
+        - Campaigns now have a networkTargeting which contains one or multiple values from the enumeration
+          networkTypes: GoogleSearch, SearchNetwork and ContentNetwork. This replaces the old
+          isActiveInSearch and isActiveInContent attributes.
+              * (new) networkTargeting
+              * (new) getNetworkTargeting()
+              * (new) setNetworkTargeting()
+              * (removed) getIsActiveInSearch(), setIsActiveInSearch()
+              * (removed) getIsActiveInContent(), setIsActiveInContent()
+
+          The campaignNegativeKeywords attribute is depreciated and has been removed. Please use
+          campaignNegativeKeywordCriteria respectively campaignNegativeWebsiteCriteria instead
+              * (new) campaignNegativeWebsiteCriteria
+              * (new) campaignNegativeKeywordCriteria
+              * (removed) campaignNegativeKeywords
+
+          This influences the Campaign functions:
+              * (modified) addCampaign() (calling parameters changed)
+              * (modified) addCampaignList() (calling parameters changed)
+              * (modified) addCampaignsOneByOne() (calling parameters changed)
+
+          Please check out the changed object hierarchy and the new class structure:
+          -> http://google-apility.sourceforge.net/resources/apility_organigram.png
+          -> http://google-apility.sourceforge.net/resources/apility_hierarchy.png
+
+        - KeywordTool functionality added
+              * (new) getKeywordVariations()
+              * (new) getKeywordsFromSite()
+          (Thanks to Richard Lynch for the patch for 1.1.0 to use this feature before the 1.3.0 release)
+
+        - Bugfix for the "This account is empty" problem.
+
+        - All modifying operations that are emulated by first removing and then re-adding have
+          been modified to first "re-"adding and then removing to make sure that the old value
+          remains in case of policy problems with the new value (concerns Keywords, Criteria, Creatives).
+          (Thanks to Thomas Grübel for this proposal)
+
+        - New function to create an AdWords account (customers need explicit permission from Google to
+          use this method)
+              * (new) createAdWordsAccount
+              * (new) helper functions: createDefaultAdsCoverageXml()
+                                        createContactInfoXml()
+                                        createEmailPreferencesXml()
+                                        createCardInfoXml()
+
+        - Updated the test suite.
+
+        - Further improvements in the docs.
+
+        - Debug mode for SOAP related details added.
+          To enable debugging set define("IS_ENABLED_DEBUG_MODE", false); to true in Clients.php. To see the
+          debugging information for the SOAP headers and requests after any APIlity function call
+              * (new) print_r($soapClients->getLastSoapRequests());
+              * (new) print_r($soapClients->getLastSoapResponses());
+
+1.1.0   !! Major update !!
+
+        However, this version is hopefully completely downwards compatible to versions 1.0.x
+        (causes some "missing parameter" warnings)
+
+        - APIlity now supports CPM-based bidding. This comes along with a new class
+          Criterion.php and some changes to the already existing AdGroup and Campaign
+          class.
+
+          Please check out the changed object hierarchy and the new class structure:
+          -> http://google-apility.sourceforge.net/resources/apility_organigram.png
+          -> http://google-apility.sourceforge.net/resources/apility_hierarchy.png
+
+          The new Criterion related functions can be found in the corresponding
+          section of the docs:
+          -> http://google-apility.sourceforge.net/reference.html#criterion
+
+        - AdGroups now have an additional maxCpm attribute. This influences respectively
+          introduces the following functions:
+                       * addAdGroup() (calling parameters changed)
+                       * getMaxCpm()
+                       * setMaxCpm()
+                       * getAllCriteria()
+        - Campaigns can now have CampaignNegativeCriteria in addition to the traditional
+          CampaignNegativeKeywords. For consistency reasons, the following functions
+          have been renamed (redirecting functions are kept for compatibility reasons):
+                       * (old) getCampaignNegativeKeywords() -> (new) getCampaignNegativeKeywordCriteria()
+                       * (old) setCampaignNegativeKeywords() -> (new) setCampaignNegativeKeywordCriteria()
+          Two new functions have been added:
+                       * getCampaignNegativeWebsiteCriteria()
+                       * setCampaignNegativeWebsiteCriteria()
+        - Reports now contain the new CPM attribute.
+        - The Report class offers two new functions:
+                       * downloadXmlReport()
+                       * downloadCsvReport()
+          This allows (re-)downloading of already existing reports.
+        - The Info class offers a new function:
+                       * getUnitCount()
+          (Thanks to Kunaal and Solitary for providing this one.)
+        - The APIlity test suite has been upgraded to reflect the changes of APIlity 1.1.0
+        - Bugfix in Campaign.php for one-element CampaignNegativeKeyword arrays
+          (Thanks to Laurent Edel for providing this one.)
+        - WSDL caching is now enabled by default.
+        - Minor bugfixes in the docs.
+
+1.0.1a  - APIlity now reflects the changes in the TrafficEstimate service
+               new attribute "clicksPerDay"
+               removed attributes "impressions", "ctr", "notShownPerDay"
+        - The documentation has been changed to a proper CSS-based layout
+
+1.0.1   - APIlity now supports all GeoTargets (cities, countries, metros, regions).
+          IMPORTANT: this comes along with changes to the object structure of Campaign objects. The
+                     countries attribute has been replaced by two new attributes:
+                       * geoTargetType
+                       * geoTargets.
+                     In addition to that, the parameters for functions located in
+                       * Report.php
+                       * Campaign.php
+                     have been changed. The values of the previous comma-separated parameter strings
+                     must now be put in arrays. In short:
+                       old: $values = "value1, value2"
+                       new: $values = array(value1, value2)
+        - Reports now use the new getGzipReportDownloadUrl function
+        - APIlity now prints a notice when an account is empty (i.e. has no Campaigns in it).
+        - APIlity now comes with a complete test suite (view the Readme_TestSuite.txt file for details)
+        - Possible security issue with authentication.ini: please read the "Getting started" section of
+          the index.html file in the doc folder. Nothing to worry about but to be aware of.
+        - The documentation (mainly index.html) was updated and now covers all changes.
+
+1.0.0e_fixed
+        - APIlity has a new demo to give an overview of how to work with APIlity
+          (Thanks a lot to Nathan White for providing this)
+        - This version fixes the behaviour of Campaign objects. Now when there is only one
+          language, country or campaign negative keyword in the Campaign, the Campaign object
+          will no more list these as strings, but as one element array as the reference states.
+        - This version fixes the behaviour of booleans. Now all boolean attribute values are
+          displayed correctly.
+        - This version fixes the addXxxList functions in case where only one element is added.
+        - This version fixes an encoding issue with German special chars (Umlaute).
+          (Thanks to Laurent Edel, Kunaal and Solitary for sending their bug reports and/or bugfixes)
+
+1.0.0e  - The SOAP clients are now loaded only on demand (lazy loading) and WSDL files can be
+          cached locally to reduce startup time.
+          (Thanks a lot to Nathan White who implemented this)
+        - APIlity now checks if its requirements are fulfilled and prints an error message if not.
+
+1.0.0d  - The SOAP clients now provide quota and response time information. This information
+          can be retrieved by calling the following functions on the $soapClients object:
+            $soapClients->getOverallConsumedUnits()
+            $soapClients->getOverallPerformedOperations()
+            $soapClients->getLastResponseTimes()
+        - The Euro bug has been fixed. Euro signs can now be uploaded transparently like this:
+            "This description1 is just 5"
+          Please not that APIlity uses its own patched version of nusoap.php from now on.
+        - APIlity supports CustomReportJobs.
+          (Thanks a lot to R. Keith Smith who implemented this)
+        - APIlity supports Cross Client Reports.
+          (Thanks again to R. Keith Smith who also implemented this)
+        - Error reporting has been extended in case of policy violations which are now
+          easier to debug.
+        - APIlity now knows its current working directory. This is useful for putting APIlity
+          somewhere and sharing it with several different APIlity-based applications.
+          (Thanks a lot to Thomas Grübel who implemented this)
+        - Simplified addCampaign(), addCampaignList() and addCampaignsOneByOne() function
+          parameters when there are no Campaign Negative Keywords
+        - Camapigns do now allow "all" as languages and countries
+
+1.0.0c - Added support for Animated Image Creatives
+       - Added ability to get client login email addresses via two new functions:
+           getManagersClientAccounts() for the current manager
+           getClientsClientAccounts() for the current client of the current manager
+
+1.0.0b - Huge performance improvements in all getAllXxx functions.
+       - Campaign isOptimizeAdServing attribute API querying (quota-consuming) can be switched off.
+       - Modified nusoap.php in a way that namespaces don't interfere when PHP5's SOAP is installed
+         (Thanks a lot to Nathan White for pointing us to these problems.)
+
+1.0.0a - Implemented possibility to upload Image Creatives by three new functions:
+           addImageCreative()
+           addImageCreativesOneByOne()
+           addImageCreativeList()
+         This comes along with changes in Creative.php as there are now two objects namely
+         TextCreative and ImageCreative that inherit both from the Creative object.
+
+1.0.0  - Minor changes in docs.
+
+0.9.3c - Implemented new Quality Based Bidding features (Keywords now have minCpc attribute).
+       - Added two new functions:
+           matchMaxCpcsToMinCpcs() for whole AdGroups
+           matchMaxCpcToMinCpc() for single Keywords
+       - Restructured trafficEstimate.php to reduce SOAP overhead.
+           getEstimate() functions for estimating existing Keywords/AdGroups/Campaigns in one go
+           getNewKeywordEstimate() function for estimating single new Keywords
+           getNewKeywordListEstimate() function for estimating sets of new Keywords
+       - Fixed some minor typos in documentation.
+
+0.9.3b - Further improvements in documentation.
+       - Fixed small bug with PHP4/PHP5 incompatibilities in setHeaders().
+       - Changed cURL user agent to ["cURL version"+gzip] for both PHP4 and PHP5.
+
+0.9.3a - Changed doc folder structure.
+       - Huge improvements in documentation.
+
+0.9.3  - Changed folder structure.
+       - Added apility.php as central required file to be included.
+       - Added Authentication.php for managing authentications.
+       - Added authentication.ini as default authentication (can be overwritten).
+       - Added settings.ini where APIlity's behaviour can be controlled.
+       - Changed Clients.php so now there is only one (singleton) object holding all clients.
+       - Clients can have several authentication contexts and so provide better flexibility.
+       - Added addXxxList functions in addition to addXxxOneByOne functions.
+         (addXxxList failing completely when one element fails but causing no SOAP overhead)
+         (addXxxOneByOne not failing completely when one element fails but causing a lot of SOAP overhead)
+       - cURL now retrieves reports with gzip compression saving large amounts of bandwidth.
+       - Changed error management completely, added Fault.php and errorReporting.php.
+         (Selection between HTML errors and fault objects, possibility of maintaining central error collecting array)
+       - Fixed bug when there is only one AdGroup/Campaign in AdGroup.php and/or Campaign.php.
+       - Several minor optimizations.
+
+0.9.2g - Added PHP5 support for pulling reports (PHP4: DOMXML, PHP5: DOM), so now both PHP4 and PHP5 should work.
+       - cURL now reports an error if cURL OpenSSL download fails (or Curl_OpenSSL is not even installed) when downloading reports.
+       - Fixed report maxCpc. Now in currency unit (and not in micros).
+       - Fixed a little bug in docs.
+
+0.9.2f - Reports can now be retrieved in bzip2 file format for archiving purposes.
+
+0.9.2e - Fixed a small bug with type casts which used to evaluate if("false") to TRUE. Now it correctly evaluates if(0) to FALSE.
+       - Updating local objects now _after_ the SOAP call so in case of an error, there still is consistency.
+       - Fixed report grandtotal CPC and cost. Now in currency unit (and not in micros).

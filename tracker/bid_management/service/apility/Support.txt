@@ -1,0 +1,16 @@
+APIlity Support
+---------------
+
+There is a special APIlity and PHP group where your questions will be answered:
+
+http://groups.google.com/group/adwords-api-php
+
+
+
+APIlity Announcement
+--------------------
+
+There is an announcement-only group with very low traffic which is exclusively used 
+to announce new releases, bugs ans bugfixes. Feel free to subscribe.
+
+http://groups.google.com/group/APIlity-Announce
